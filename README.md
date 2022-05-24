@@ -1,73 +1,165 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
+# Aplicacion de Vuelos NestJS
+###### Notas del proyecto Raúl Chauvin
+## Instalacion del framework
+En primer lugar, instalamos el CLI de NestJS en caso de no tenerlo
 
 ```bash
-$ npm install
+$ npm i -g @nestjs/cli
 ```
 
-## Running the app
+Luego lo que vamos a hacer es instalar el framework para iniciar el desarrollo:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+$ nest new flight-application
 ```
 
-## Test
+>_Seleccionamos npm para la instalacion de dependencias_
+
+## Global Filter
+Ahora vamos a crear un filtro global para **manejo de Excepciones**, para lo cual vamos a hacer lo siguiente:
+
+* Dentro del directorio "src" creamos el directorio "commons".
+* Dentro de "src/commons" creamos el directorio "filters".
+* Dentro de "src/commons/filters" creamos un archivo llamado "http-exceptions.filter.ts".
+* Luego de tener lista la programacion del archivo http-exceptions, vamos a main.ts e instanciamos esta clase de manera global.
+
+```javascript
+app.useGlobalFilters(new AllHttpExceptionsFilter());
+```
+
+## Global Interceptor
+Lo siguiente que vamos a hacer es configurar el interceptor de timeout de manera global tambien. Para eso hacemos lo siguiente:
+
+* Dentro del directorio "src/commons" creamos un directorio llamado "interceptors"
+* Dentro del directorio "src/commons/interceptors" creamos el archivo timeout.interceptor.ts
+* Luego de programar el archivo vamos a instanciarlo de manera global en main.ts usando la siguiente linea
+
+    ```javascript
+    app.useGlobalInterceptors(new TimeoutInterceptor());
+    ```
+
+## Dependencies 
+A continuación vamos a instalar las dependencias necesarias para usar la BBDD de nuestro proyecto
+* A continuación la lista de dependencias que vamos a instalar
+
+    ```bash	
+    $ npm i --save mongoose
+    $ npm i --save mongoose-autopopulate
+    $ npm i --save @nestjs/mongoose
+    $ npm i --save @nestjs/config
+    ```
+
+## Conexion a MongoDB
+* Creamos un nuevo archivo en la raiz del proyecto para almacenar las variables de entorno de la conexion a la BBDD
+		.env.development
+
+* En este archivo colocamos la siguiente variable de entorno
+		#.env.development
+        #Database Connection
+    	URI_MONGODB=mongodb://localhost:27017/flight_application
+
+* Ahora vamos al archivo app.module.ts
+**_Importamos las dependencias necesarias para configurar la conexion a la BBDD_**
+		
+##### app.module.ts
+```javascript
+import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+```
+
+**_Dentro del arreglo imports (imports: []) agregamos lo siguiente:_**
+##### app.module.ts
+```javascript
+ConfigModule.forRoot({
+    envFilePath: ['env.development'],
+    isGlobal: true 
+}), 
+MongooseModule.forRoot(process.env.URI_MONGODB, {
+    useCreateIndex: true,
+    useFindAndModify: false
+})
+```
+
+## Modulo de Usuarios del Sistema
+En primer lugar vamos a generar el modulo de usuarios utilizando el CLI de NestJS.
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+$ nest g mo auth/user
 ```
 
-## Support
+Ahora vamos a generar el controlador de user.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+$ nest g co auth/user
+```
 
-## Stay in touch
+Lo siguiente es generar el servicio.
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+$ nest g s auth/user
+```
 
-## License
+Ahora vamos a crear la interface de usuario, para eso vamos a crear los directorios **"interfaces/auth"** dentro de **"commons"**
+y dentro de esta carpeta vamos a crear el archivo **_"user.interface.ts"_** con el siguiente código:
 
-Nest is [MIT licensed](LICENSE).
+##### user.interface.ts
+```javascript
+export interface IUser extends Document{
+    name: string;
+    username: string;
+    email: string;
+    password: string;
+}
+```
+
+Ahora creamos el DTO para usuarios, para esto vamos a crear el directorio **"dto"** dentro de **_"src/auth/user"_**.
+
+Dentro de **"src/auth/user/dto"** vamor a crear el archivo **_"user.dto.ts"_** con el siguiente código:
+
+##### user.dto.ts
+```javascript
+export class UserDTO{
+    readonly name: string;
+    readonly username: string;
+    readonly email: string;
+    readonly password: string;
+}
+```
+
+Ahora vamos a instalar 2 dependencias que necesitamos para la validación de datos:
+
+```bash
+$ npm i class-validator class-transformer
+```
+
+Luego, actualizamos nuestro DTO de la siguiente manera:
+
+##### user.dto.ts
+```javascript
+import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+
+export class UserDTO{
+    @IsNotEmpty()
+    @IsString()
+    readonly name: string;
+
+    @IsNotEmpty()
+    @IsString()
+    readonly username: string;
+
+    @IsNotEmpty()
+    @IsEmail()
+    readonly email: string;
+    
+    @IsNotEmpty()
+    @IsString()
+    readonly password: string;
+}
+```
+
+Ahora debemos colcoar la configuración global en **_"src/main.ts"_** para que la validación de datos tenga efecto.
+
+##### main.ts
+```javascript
+app.useGlobalPipes(new ValidationPipe());
+```
