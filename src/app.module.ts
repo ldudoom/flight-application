@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UserModule } from './auth/user/user.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { AppService } from './app.service';
     MongooseModule.forRoot(process.env.URI_MONGODB, {
       useCreateIndex: true,
       useFindAndModify: false
-    })
+    }), 
+    UserModule
   ],
   controllers: [AppController],
   providers: [AppService],
