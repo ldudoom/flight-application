@@ -8,13 +8,10 @@ import { UserModule } from './auth/user/user.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['env.development'],
+      envFilePath: ['.env.development'],
       isGlobal: true 
     }), 
-    MongooseModule.forRoot(process.env.URI_MONGODB, {
-      useCreateIndex: true,
-      useFindAndModify: false
-    }), 
+    MongooseModule.forRoot(process.env.URI_MONGODB), 
     UserModule
   ],
   controllers: [AppController],
