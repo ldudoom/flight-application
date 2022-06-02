@@ -452,6 +452,8 @@ Ahora vamos a generar toda la esrtuctura de Pasajeros.
 
 En este momento, se debe haber importado tanto el controlador como el servicio dentro del modulo de pasajeros. Verifiquemos que el modulo de pasajeros "**_src/manage/passenger/passenger.module.ts_**" se encuentre estructurado de la siguiente manera:
 
+##### passenger.module.ts
+
 ```javascript
 import { Module } from '@nestjs/common';
 import { PassengerController } from './passenger.controller';
@@ -533,7 +535,7 @@ Luego, esta constante **_"PASSENGER"_**, junto con **_"passenger.schema.ts"_** l
 ```javascript
 import { MongooseModule } from '@nestjs/mongoose';
 import { PASSENGER } from 'src/commons/models/models';
-import { UserSchema } from './schema/user.schema';
+import { PassengerSchema } from './schema/passenger.schema';
 
 imports: [
     MongooseModule.forFeatureAsync([
@@ -731,6 +733,329 @@ async delete(id: string): Promise<Object>{
     return {
         status: HttpStatus.OK,
         message: 'Passenger deleted'
+    };
+}
+```
+
+
+## Modulo de Vuelos
+### Configuración inicial (Estructura del módulo de vuelos)
+
+Ahora vamos a generar toda la esrtuctura de Vuelos.
+
+* En primer lugar vamos a crear el modulo usando el CLI de Nest
+
+    ```bash
+    $ nest g mo manage/flight
+    ```
+
+* Ahora vamos a crear el controlador
+    ```bash
+    $ nest g co manage/flight
+    ```
+
+* Y un servicio
+    ```bash
+    $ nest g s manage/flight
+    ```
+
+En este momento, se debe haber importado tanto el controlador como el servicio dentro del modulo de vuelos. Verifiquemos que el modulo de vuelos "**_src/manage/flight/flight.module.ts_**" se encuentre estructurado de la siguiente manera:
+
+##### flight.module.ts
+```javascript
+import { Module } from '@nestjs/common';
+import { FlightController } from './flight.controller';
+import { FlightService } from './flight.service';
+
+@Module({
+  controllers: [FlightController],
+  providers: [FlightService]
+})
+export class FlightModule {}
+```
+
+Creamos el DTO para vuelos, para esto vamos a crear el directorio **"dto"** dentro de **_"src/manage/flight"_**.
+Dentro de **"src/manage/flight/dto"** vamor a crear el archivo **_"flight.dto.ts"_** con el siguiente código:
+
+##### flight.dto.ts
+```javascript
+import { IsEmail, IsNotEmpty, IsString, IsDate } from "class-validator";
+
+export class PassengerDTO{
+    @IsNotEmpty()
+    @IsString()
+    readonly pilot: string;
+
+    @IsNotEmpty()
+    @IsString()
+    readonly airplane: string;
+
+    @IsNotEmpty()
+    @IsString()
+    readonly destinationCity: string;
+
+    @IsNotEmpty()
+    @IsDate()
+    readonly flightDate: Date;
+}
+```
+
+Creamos la interface de vuelo **_"flight.interface.ts"_** dentro de **"src/commons/interfaces/manage/"** con el siguiente código:
+
+##### flight.interface.ts
+```javascript
+export interface IFlight extends Document{
+    pilot: string;
+    airplane: string;
+    destinationCity: string;
+    flightDate: Date;
+}
+```
+
+### Creando esquema y modelo de vuelos
+
+Lo primero que vamos a hacer es crear el directorio **_"schema"_** dentro de **"src/manage/flight"**.
+
+Dentro de **"src/manage/flight/schema"** vamos a crear el archivo **_"flight.schema.ts"_**
+
+El código del archivo **flight.schema.ts** es el siguiente:
+
+##### flight.schema.ts
+```javascript
+import * as mongoose from 'mongoose';
+
+export const FlightSchema = new mongoose.Schema({
+    pilot:{
+        type: String,
+        required: true
+    },
+    airplane:{
+        type: String,
+        required: true
+    },
+    destinationCity:{
+        type: String,
+        required: true
+    },
+    flightDate:{
+        type: Date,
+        required: true
+    }
+}, {
+    timestamps: true
+});
+```
+
+Vamos ahora a agregar dentro de **"src/commons/models/models.ts"** el siguiente código.
+
+##### models.ts
+```javascript
+export const FLIGHT = {name: 'flights'};
+```
+
+Luego, esta constante **_"FLIGHT"_**, junto con **_"flight.schema.ts"_** la vamos a importar en el modulo **"src/manage/flight/flight.module.ts"** de la siguiente manera:
+
+##### flight.module.ts
+```javascript
+import { MongooseModule } from '@nestjs/mongoose';
+import { FLIGHT } from 'src/commons/models/models';
+import { FlightSchema } from './schema/flight.schema';
+
+imports: [
+    MongooseModule.forFeatureAsync([
+      {
+        name: FLIGHT.name,
+        useFactory: () => FlightSchema
+      }
+    ])
+  ],
+```
+
+### Creando endpoint para creacion de vuelo
+
+En primer lugar vamos a cambiar la URI del controlador **"src/manage/flight/flight.controller.ts"** de vuelos colocando lo siguiente:
+
+##### flight.controller.ts
+```javascript
+@Controller('api/v1/flight')
+```
+
+Vamos a importar los elementos necesarios para poder crear el metodo para almacenar vuelos.
+
+##### flight.controller.ts
+```javascript
+import { Controller, Body, Post } from '@nestjs/common';
+import { FlightDTO } from './dto/flight.dto';
+import { FlightService } from './flight.service';
+```
+
+Ahora vamos a inyectar nuestro servicio en el constructor del controlador de la siguiente manera:
+
+##### flight.controller.ts
+```javascript
+constructor(private readonly _flightService: FlightService){}
+```
+
+Por ultimo, colocamos la programación del método **_store_** de nuestro controlador:
+
+##### flight.controller.ts
+```javascript
+@Post()
+store(@Body() flightDTO: FlightDTO){
+    return this._flightService.store(flightDTO);
+}
+```
+
+Lo siguiente es programar el método **_store_** en el servicio **_"src/manage/flight/flight.service.ts"_**
+
+Importamos las librerias y componentes necesarios:
+##### flight.service.ts
+```javascript
+import { Injectable } from '@nestjs/common';
+import { IFlight } from 'src/commons/interfaces/manage/flight.interface';
+import { FlightDTO } from './dto/flight.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { FLIGHT } from 'src/commons/models/models';
+import { Model } from 'mongoose';
+```
+
+Inyectamos el modelo y la interface de vuelo en el constructor
+##### flight.service.ts
+```javascript
+constructor(@InjectModel(FLIGHT.name) private readonly _model: Model<IFlight>){}
+```
+
+Y programamos el metodo para insertar el vuelo en la BBDD
+##### flight.service.ts
+_Es un método asíncrono que recibe el DTO de flight y devuelve como resultado una Promesa de la interface IFlight y luego se manda a almacenar en la BBDD para finalmente retornar el vuelo creado_
+
+```javascript
+async store(flightDTO: FlightDTO): Promise<IFlight>{
+  const newFlight = new this._model(flightDTO);
+  return await newFlight.save();
+}
+```
+
+
+### Creando endpoint para obtener la lista de vuelos
+
+Vamos a crear el método **_index_** usando el decorador **_@Get_** de la siguiente manera
+
+_Nota:_ Recordemos importar Get
+
+```javascript
+import { Body, Controller, Post, Get } from '@nestjs/common';
+```
+##### flight.controller.ts
+```javascript
+@Get()
+index(){
+    return this._flightService.getAll();
+}
+```
+
+Ahora nos queda simplemente implementar el método _getAll()_ en nuestro servicio
+
+_Es un método asíncrono que devuelve un Promesa con un arreglo de IFlight_
+#### flight.service.ts
+```javascript
+async getAll(): Promise<IFlight[]>{
+    return await this._model.find();
+}
+```
+
+
+### Creando endpoint para obtener un vuelo por su ID
+
+En primer lugar vamos a crear el metodo **_show_** en el controlador de la siguiente manera:
+
+_Usamos el decorador @Get en este método y obtenemos el ID del vuelo como un parámetro de la URL para devolver el vuelo como resultado_
+
+_Nota:_ Recordemos importar Param
+
+```javascript
+import { Body, Controller, Post, Get, Param } from '@nestjs/common';
+```
+##### flight.controller.ts
+```javascript
+@Get(':id')
+show(@Param('id') id:string ){
+    return this._flightService.getFlight(id);
+}
+```
+
+Ahora vamos a implementar el método **_getFlight()_** en el servicio **_flight.service.ts_**
+
+_Método asíncrono que devuelve una Promesa con la interface IFlight_
+##### flight.service.ts
+```javascript
+async getFlight(id: string): Promise<IFlight>{
+    return await this._model.findById(id);
+}
+```
+
+
+### Creando endpoint para actualizar la informacion de un vuelo
+
+En primer lugar actualizamos el controlador agregando le metodo **_update_** con el decorador @Put para actualizar el vuelo.
+El método _update_ lo vamos a codificar de la siguiente manera:
+
+_Nota:_ Recordemos importar Put
+
+```javascript
+import { Body, Controller, Post, Get, Param, Put } from '@nestjs/common';
+```
+##### flight.controller.ts
+```javascript
+@Put(':id')
+update(@Param('id') id:string, @Body() flightDTO: FlightDTO){
+    return this._flightService.update(id, flightDTO);
+}
+```
+
+Ahora vamos a programar el método **_update_** en el archivo **_flight.service.ts_**
+
+##### flight.service.ts
+```javascript
+async update(id: string, flightDTO: FlightDTO): Promise<IFlight>{
+    return await this._model.findByIdAndUpdate(id, flightDTO, {new: true});
+}
+```
+
+
+### Creando endpoint para eliminar un vuelo
+
+En primer lugar actualizamos el controlador agregando le metodo **_destroy_** con el decorador @Delete para eliminar el vuelo.
+El método _destroy_ lo vamos a codificar de la siguiente manera:
+
+_Nota:_ Recordemos importar Delete
+
+```javascript
+import { Body, Controller, Post, Get, Param, Put, Delete } from '@nestjs/common';
+```
+##### flight.controller.ts
+```javascript
+@Delete(':id')
+destroy(@Param('id') id:string){
+    return this._flightService.delete(id);
+}
+```
+
+Ahora vamos a programar el método **_delete_** en el archivo **_flight.service.ts_**
+
+_NOTA: Debemos importar HttpStatus de **@nest/common**_
+
+```javascript
+import { HttpStatus, Injectable } from '@nestjs/common';
+```
+
+##### flight.service.ts
+```javascript
+async delete(id: string): Promise<Object>{
+    await this._model.findByIdAndDelete(id);
+    return {
+        status: HttpStatus.OK,
+        message: 'Flight deleted'
     };
 }
 ```
