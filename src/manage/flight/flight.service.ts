@@ -21,8 +21,7 @@ export class FlightService {
 
     async store(flightDTO: FlightDTO): Promise<IFlight>
     {
-        const newFlight = new this._model(flightDTO);
-        return await newFlight.save();
+        return await new this._model(flightDTO).save();
     }
 
     async update(id: string, flightDTO: FlightDTO): Promise<IFlight>

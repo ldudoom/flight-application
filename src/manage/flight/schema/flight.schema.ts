@@ -16,7 +16,8 @@ export const FlightSchema = new mongoose.Schema({
     flightDate:{
         type: Date,
         required: true
-    }
+    },
+    passengers:[{ type: mongoose.Schema.Types.ObjectId, ref: 'passengers' }]
 }, {
     timestamps: true
 });

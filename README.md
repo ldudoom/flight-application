@@ -779,7 +779,7 @@ Dentro de **"src/manage/flight/dto"** vamor a crear el archivo **_"flight.dto.ts
 
 ##### flight.dto.ts
 ```javascript
-import { IsEmail, IsNotEmpty, IsString, IsDate } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, IsStringDate } from "class-validator";
 
 export class PassengerDTO{
     @IsNotEmpty()
@@ -795,7 +795,7 @@ export class PassengerDTO{
     readonly destinationCity: string;
 
     @IsNotEmpty()
-    @IsDate()
+    @IsStringDate()
     readonly flightDate: Date;
 }
 ```
@@ -804,12 +804,14 @@ Creamos la interface de vuelo **_"flight.interface.ts"_** dentro de **"src/commo
 
 ##### flight.interface.ts
 ```javascript
+import { IPassenger } from "./passenger.interface";
+
 export interface IFlight extends Document{
     pilot: string;
     airplane: string;
     destinationCity: string;
     flightDate: Date;
-}
+    passengers: IPassenger[];
 ```
 
 ### Creando esquema y modelo de vuelos
@@ -840,7 +842,8 @@ export const FlightSchema = new mongoose.Schema({
     flightDate:{
         type: Date,
         required: true
-    }
+    },
+    passengers:[{ type: mongoose.Schema.Types.ObjectId, ref: 'passengers' }]
 }, {
     timestamps: true
 });
@@ -860,14 +863,15 @@ Luego, esta constante **_"FLIGHT"_**, junto con **_"flight.schema.ts"_** la vamo
 import { MongooseModule } from '@nestjs/mongoose';
 import { FLIGHT } from 'src/commons/models/models';
 import { FlightSchema } from './schema/flight.schema';
+import { PassengerModule } from '../passenger/passenger.module';
 
 imports: [
     MongooseModule.forFeatureAsync([
       {
         name: FLIGHT.name,
-        useFactory: () => FlightSchema
+        useFactory: () => FlightSchema.plugin(require('mongoose-autopopulate'))
       }
-    ])
+    ]), PassengerModule
   ],
 ```
 
@@ -931,8 +935,7 @@ _Es un método asíncrono que recibe el DTO de flight y devuelve como resultado 
 
 ```javascript
 async store(flightDTO: FlightDTO): Promise<IFlight>{
-  const newFlight = new this._model(flightDTO);
-  return await newFlight.save();
+  return await new this._model(flightDTO).save();
 }
 ```
 
