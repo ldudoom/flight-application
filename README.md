@@ -299,6 +299,7 @@ async hashPassword(password: string): Promise<string>{
 
 Y programamos el metodo para insertar el usuario en la BBDD
 ##### user.service.ts
+_Es un método asíncrono que recibe el DTO de user y devuelve como resultado una Promesa de la interface IUser. Se encripta la clave del usuario y luego se manda a almacenar en la BBDD para finalmente retornar el usuario creado_
 ```javascript
 async store(userDTO: UserDTO): Promise<IUser>{
   const hash = await this.hashPassword(userDTO.password);
@@ -308,4 +309,118 @@ async store(userDTO: UserDTO): Promise<IUser>{
 ```
 
 
+### Creando endpoint para obtener la lista de usuarios
 
+Vamos a crear el método **_index_** usando el decorador **_@Get_** de la siguiente manera
+
+_Nota:_ Recordemos importar Get
+
+```javascript
+import { Body, Controller, Post, Get } from '@nestjs/common';
+```
+##### user.controller.ts
+```javascript
+@Get()
+index(){
+    return this._userService.getAll();
+}
+```
+
+Ahora nos queda simplemente implementar el método _getAll()_ en nuestro servicio
+
+_Es un método asíncrono que devuelve un Promesa con un arreglo de IUser_
+#### user.service.ts
+```javascript
+async getAll(): Promise<IUser[]>{
+    return await this._model.find();
+}
+```
+
+
+### Creando endpoint para obtener un usuario por su ID
+
+En primer lugar vamos a crear el metodo **_show_** en el controlador de la siguiente manera:
+
+_Usamos el decorador @Get en este método y obtenemos el ID del usuario como un parámetro de la URL para devolver el usuario como resultado_
+
+_Nota:_ Recordemos importar Param
+
+```javascript
+import { Body, Controller, Post, Get, Param } from '@nestjs/common';
+```
+##### user.controller.ts
+```javascript
+@Get(':id')
+show(@Param('id') id:string ){
+    return this._userService.getUser(id);
+}
+```
+
+Ahora vamos a implementar el método **_getUser()_** en el servicio **_user.service.ts_**
+
+_Método asíncrono que devuelve una Promesa con la interface IUser_
+##### user.service.ts
+```javascript
+async getUser(id: string): Promise<IUser>{
+    return await this._model.findById(id);
+}
+```
+
+
+### Creando endpoint para actualizar la informacion de un usuario
+
+En primer lugar actualizamos el controlador agregando le metodo **_update_** con el decorador @Put para actualizar el usuario.
+El método _update_ lo vamos a codificar de la siguiente manera:
+
+_Nota:_ Recordemos importar Put
+
+```javascript
+import { Body, Controller, Post, Get, Param, Put } from '@nestjs/common';
+```
+##### user.controller.ts
+```javascript
+@Put(':id')
+update(@Param('id') id:string, @Body() userDTO: UserDTO){
+    return this._userService.update(id, userDTO);
+}
+```
+
+Ahora vamos a programar el método **_update_** en el archivo **_user.service.ts_**
+
+##### user.service.ts
+```javascript
+async update(id: string, userDTO: UserDTO): Promise<IUser>{
+    const hash = await this.hashPassword(userDTO.password);
+    const user = {...userDTO, password: hash}
+    return await this._model.findByIdAndUpdate(id, user, {new: true});
+}
+```
+
+
+### Creando endpoint para eliminar un usuario
+
+En primer lugar actualizamos el controlador agregando le metodo **_destroy_** con el decorador @Delete para eliminar el usuario.
+El método _destroy_ lo vamos a codificar de la siguiente manera:
+
+_Nota:_ Recordemos importar Delete
+
+```javascript
+import { Body, Controller, Post, Get, Param, Put, Delete } from '@nestjs/common';
+```
+##### user.controller.ts
+```javascript
+@Delete(':id')
+destroy(@Param('id') id:string){
+    return this._userService.delete(id);
+}
+```
+
+Ahora vamos a programar el método **_delete_** en el archivo **_user.service.ts_**
+
+##### user.service.ts
+```javascript
+async delete(id: string): Promise<string>{
+    await this._model.deleteOne(this._model.findById(id));
+    return 'Usuario eliminado';
+}
+```

@@ -22,4 +22,23 @@ export class UserService {
         return await newUser.save();
     }
 
+    async getAll(): Promise<IUser[]>{
+        return await this._model.find();
+    }
+
+    async getUser(id: string): Promise<IUser>{
+        return await this._model.findById(id);
+    }
+
+    async update(id: string, userDTO: UserDTO): Promise<IUser>{
+        const hash = await this.hashPassword(userDTO.password);
+        const user = {...userDTO, password: hash}
+        return await this._model.findByIdAndUpdate(id, user, {new: true});
+    }
+
+    async delete(id: string): Promise<string>{
+        await this._model.findOneAndDelete(await this._model.findById(id));
+        return 'Usuario eliminado';
+    }
+
 }
