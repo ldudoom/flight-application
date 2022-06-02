@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { IUser } from 'src/commons/interfaces/auth/user.interface';
 import { UserDTO } from './dto/user.dto';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { USER } from 'src/commons/models/models';
 import { Model } from 'mongoose';
+import { ObjectEncodingOptions } from 'fs';
 
 @Injectable()
 export class UserService {
@@ -36,9 +37,12 @@ export class UserService {
         return await this._model.findByIdAndUpdate(id, user, {new: true});
     }
 
-    async delete(id: string): Promise<string>{
-        await this._model.findOneAndDelete(await this._model.findById(id));
-        return 'Usuario eliminado';
+    async delete(id: string): Promise<Object>{
+        await this._model.findByIdAndDelete(id);
+        return {
+            status: HttpStatus.OK,
+            message: 'User deleted'
+        };
     }
 
 }

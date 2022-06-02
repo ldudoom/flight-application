@@ -419,8 +419,11 @@ Ahora vamos a programar el método **_delete_** en el archivo **_user.service.ts
 
 ##### user.service.ts
 ```javascript
-async delete(id: string): Promise<string>{
-    await this._model.deleteOne(this._model.findById(id));
-    return 'Usuario eliminado';
+async delete(id: string): Promise<Object>{
+    await this._model.findByIdAndDelete(id);
+    return {
+        status: HttpStatus.OK,
+        message: 'User deleted'
+    };
 }
 ```
