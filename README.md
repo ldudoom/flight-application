@@ -411,6 +411,12 @@ destroy(@Param('id') id:string){
 
 Ahora vamos a programar el método **_delete_** en el archivo **_user.service.ts_**
 
+_NOTA: Debemos importar HttpStatus de **@nest/common**_
+
+```javascript
+import { HttpStatus, Injectable } from '@nestjs/common';
+```
+
 ##### user.service.ts
 ```javascript
 async delete(id: string): Promise<Object>{
@@ -537,4 +543,194 @@ imports: [
       }
     ])
   ],
+```
+
+
+### Creando endpoint para creacion de pasajero
+
+En primer lugar vamos a cambiar la URI del controlador **"src/manage/passenger/passenger.controller.ts"** de pasajeros colocando lo siguiente:
+
+##### passenger.controller.ts
+```javascript
+@Controller('api/v1/passenger')
+```
+
+Vamos a importar los elementos necesarios para poder crear el metodo para almacenar pasajeros.
+
+##### passenger.controller.ts
+```javascript
+import { Controller, Body, Post } from '@nestjs/common';
+import { PassengerDTO } from './dto/passenger.dto';
+import { PassengerService } from './passenger.service';
+```
+
+Ahora vamos a inyectar nuestro servicio en el constructor del controlador de la siguiente manera:
+
+##### passenger.controller.ts
+```javascript
+constructor(private readonly _passengerService: PassengerService){}
+```
+
+Por ultimo, colocamos la programación del método **_store_** de nuestro controlador:
+
+##### passenger.controller.ts
+```javascript
+@Post()
+store(@Body() passengerDTO: PassengerDTO){
+    return this._passengerService.store(passengerDTO);
+}
+```
+
+Lo siguiente es programar el método **_store_** en el servicio **_"src/manage/passenger/passenger.service.ts"_**
+
+Importamos las librerias y componentes necesarios:
+##### passenger.service.ts
+```javascript
+import { Injectable } from '@nestjs/common';
+import { IPassenger } from 'src/commons/interfaces/manage/passenger.interface';
+import { PassengerDTO } from './dto/passenger.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { PASSENGER } from 'src/commons/models/models';
+import { Model } from 'mongoose';
+```
+
+Inyectamos el modelo y la interface de passenger en el constructor
+##### passenger.service.ts
+```javascript
+constructor(@InjectModel(PASSENGER.name) private readonly _model: Model<IPassenger>){}
+```
+
+Y programamos el metodo para insertar el pasajero en la BBDD
+##### passenger.service.ts
+_Es un método asíncrono que recibe el DTO de user y devuelve como resultado una Promesa de la interface IPassenger y luego se manda a almacenar en la BBDD para finalmente retornar el pasajero creado_
+```javascript
+async store(passengerDTO: PassengerDTO): Promise<IPassenger>{
+  const newPassenger = new this._model({...passengerDTO});
+  return await newPassenger.save();
+}
+```
+
+
+### Creando endpoint para obtener la lista de pasajeros
+
+Vamos a crear el método **_index_** usando el decorador **_@Get_** de la siguiente manera
+
+_Nota:_ Recordemos importar Get
+
+```javascript
+import { Body, Controller, Post, Get } from '@nestjs/common';
+```
+##### passenger.controller.ts
+```javascript
+@Get()
+index(){
+    return this._passengerService.getAll();
+}
+```
+
+Ahora nos queda simplemente implementar el método _getAll()_ en nuestro servicio
+
+_Es un método asíncrono que devuelve un Promesa con un arreglo de IPassenger_
+#### passenger.service.ts
+```javascript
+async getAll(): Promise<IPassenger[]>{
+    return await this._model.find();
+}
+```
+
+
+### Creando endpoint para obtener un pasajero por su ID
+
+En primer lugar vamos a crear el metodo **_show_** en el controlador de la siguiente manera:
+
+_Usamos el decorador @Get en este método y obtenemos el ID del pasajero como un parámetro de la URL para devolver el pasajero como resultado_
+
+_Nota:_ Recordemos importar Param
+
+```javascript
+import { Body, Controller, Post, Get, Param } from '@nestjs/common';
+```
+##### passenger.controller.ts
+```javascript
+@Get(':id')
+show(@Param('id') id:string ){
+    return this._passengerService.getPassenger(id);
+}
+```
+
+Ahora vamos a implementar el método **_getPassenger()_** en el servicio **_passenger.service.ts_**
+
+_Método asíncrono que devuelve una Promesa con la interface IPassenger_
+##### passenger.service.ts
+```javascript
+async getPassenger(id: string): Promise<IPassenger>{
+    return await this._model.findById(id);
+}
+```
+
+
+### Creando endpoint para actualizar la informacion de un pasajero
+
+En primer lugar actualizamos el controlador agregando le metodo **_update_** con el decorador @Put para actualizar el pasajero.
+El método _update_ lo vamos a codificar de la siguiente manera:
+
+_Nota:_ Recordemos importar Put
+
+```javascript
+import { Body, Controller, Post, Get, Param, Put } from '@nestjs/common';
+```
+##### passenger.controller.ts
+```javascript
+@Put(':id')
+update(@Param('id') id:string, @Body() passengerDTO: PassengerDTO){
+    return this._passengerService.update(id, passengerDTO);
+}
+```
+
+Ahora vamos a programar el método **_update_** en el archivo **_passenger.service.ts_**
+
+##### passenger.service.ts
+```javascript
+async update(id: string, passengerDTO: PassengerDTO): Promise<IPassenger>{
+    const passenger = {...passengerDTO}
+    return await this._model.findByIdAndUpdate(id, passenger, {new: true});
+}
+```
+
+
+### Creando endpoint para eliminar un pasajero
+
+En primer lugar actualizamos el controlador agregando le metodo **_destroy_** con el decorador @Delete para eliminar el pasajero.
+El método _destroy_ lo vamos a codificar de la siguiente manera:
+
+_Nota:_ Recordemos importar Delete
+
+```javascript
+import { Body, Controller, Post, Get, Param, Put, Delete } from '@nestjs/common';
+```
+##### passenger.controller.ts
+```javascript
+@Delete(':id')
+destroy(@Param('id') id:string){
+    return this._passengerService.delete(id);
+}
+```
+
+Ahora vamos a programar el método **_delete_** en el archivo **_passenger.service.ts_**
+
+_NOTA: Debemos importar HttpStatus de **@nest/common**_
+
+```javascript
+import { HttpStatus, Injectable } from '@nestjs/common';
+```
+
+##### passenger.service.ts
+```javascript
+async delete(id: string): Promise<Object>{
+    await this._model.findByIdAndDelete(id);
+    return {
+        status: HttpStatus.OK,
+        message: 'Passenger deleted'
+    };
+}
 ```
