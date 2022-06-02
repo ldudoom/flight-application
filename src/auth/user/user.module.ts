@@ -10,9 +10,7 @@ import { UserSchema } from './schema/user.schema';
     MongooseModule.forFeatureAsync([
       {
         name:USER.name,
-        useFactory:() => {
-          return UserSchema;
-        }
+        useFactory:() => UserSchema
       }
     ])
   ],

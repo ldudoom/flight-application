@@ -1,17 +1,15 @@
 # Aplicacion de Vuelos NestJS
 ###### Notas del proyecto
 ## Instalacion del framework
-En primer lugar, instalamos el CLI de NestJS en caso de no tenerlo instalado
+* En primer lugar, instalamos el CLI de NestJS en caso de no tenerlo instalado
+    ```bash
+    $ npm i -g @nestjs/cli
+    ```
 
-```bash
-$ npm i -g @nestjs/cli
-```
-
-Luego lo que vamos a hacer es instalar el framework para iniciar el desarrollo:
-
-```bash
-$ nest new flight-application
-```
+* Luego lo que vamos a hacer es instalar el framework para iniciar el desarrollo:
+    ```bash
+    $ nest new flight-application
+    ```
 
 >_Seleccionamos npm para la instalacion de dependencias_
 
@@ -40,7 +38,7 @@ Lo siguiente que vamos a hacer es configurar el interceptor de timeout de manera
 
 ## Dependencies 
 A continuación vamos a instalar las dependencias necesarias para usar la BBDD de nuestro proyecto
-* A continuación la lista de dependencias que vamos a instalar
+* Esta es la lista de dependencias que vamos a instalar
 
     ```bash	
     $ npm i --save mongoose
@@ -51,21 +49,22 @@ A continuación vamos a instalar las dependencias necesarias para usar la BBDD d
 
 ## Conexion a MongoDB
 * Creamos un nuevo archivo en la raiz del proyecto para almacenar las variables de entorno de la conexion a la BBDD
-		.env.development
+		**_.env.development_**
 
 * En este archivo colocamos la siguiente variable de entorno
-		#.env.development
+		```
+        #.env.development
         #Database Connection
-    	URI_MONGODB=mongodb://localhost:27017/flight_application
+        URI_MONGODB=mongodb://localhost:27017/flight_application
+        ```
 
-* Ahora vamos al archivo app.module.ts
-**_Importamos las dependencias necesarias para configurar la conexion a la BBDD_**
+* Vamos al archivo **_app.module.ts_** e importamos las dependencias necesarias para configurar la conexion a la BBDD
 		
-##### app.module.ts
-```javascript
-import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-```
+    ##### app.module.ts
+    ```javascript
+    import { ConfigModule } from '@nestjs/config';
+    import { MongooseModule } from '@nestjs/mongoose';
+    ```
 
 **_Dentro del arreglo imports (imports: []) agregamos lo siguiente:_**
 ##### app.module.ts
@@ -79,25 +78,22 @@ MongooseModule.forRoot(process.env.URI_MONGODB)
 
 ## Modulo de Usuarios del Sistema
 ### Configuración inicial (Estructura del módulo de usuarios)
-En primer lugar vamos a generar el modulo de usuarios utilizando el CLI de NestJS.
+* En primer lugar vamos a generar el modulo de usuarios utilizando el CLI de NestJS.
+    ```bash
+    $ nest g mo auth/user
+    ```
 
-```bash
-$ nest g mo auth/user
-```
+* Generamos el controlador de user.
+    ```bash
+    $ nest g co auth/user
+    ```
 
-Ahora vamos a generar el controlador de user.
+* Lo siguiente es generar el servicio.
+    ```bash
+    $ nest g s auth/user
+    ```
 
-```bash
-$ nest g co auth/user
-```
-
-Lo siguiente es generar el servicio.
-
-```bash
-$ nest g s auth/user
-```
-
-Ahora vamos a crear la interface de usuario, para eso vamos a crear los directorios **"interfaces/auth"** dentro de **"commons"**
+Creamos la interface de usuario, para eso vamos a crear los directorios **"interfaces/auth"** dentro de **"commons"**
 y dentro de esta carpeta vamos a crear el archivo **_"user.interface.ts"_** con el siguiente código:
 
 ##### user.interface.ts
@@ -110,7 +106,7 @@ export interface IUser extends Document{
 }
 ```
 
-Ahora creamos el DTO para usuarios, para esto vamos a crear el directorio **"dto"** dentro de **_"src/auth/user"_**.
+Creamos el DTO para usuarios, para esto vamos a crear el directorio **"dto"** dentro de **_"src/auth/user"_**.
 
 Dentro de **"src/auth/user/dto"** vamor a crear el archivo **_"user.dto.ts"_** con el siguiente código:
 
@@ -124,7 +120,7 @@ export class UserDTO{
 }
 ```
 
-Ahora vamos a instalar 2 dependencias que necesitamos para la validación de datos:
+Vamos a instalar 2 dependencias que necesitamos para la validación de datos:
 
 ```bash
 $ npm i class-validator class-transformer
@@ -218,10 +214,8 @@ import { UserSchema } from './schema/user.schema';
 imports: [
   MongooseModule.forFeatureAsync([
     {
-      name:USER.name,
-      useFactory:() => {
-        return UserSchema;
-      }
+      name: USER.name,
+      useFactory: () => UserSchema
     }
   ])
 ],
@@ -426,4 +420,121 @@ async delete(id: string): Promise<Object>{
         message: 'User deleted'
     };
 }
+```
+
+
+## Modulo de Pasajeros
+### Configuración inicial (Estructura del módulo de pasajeros)
+
+Ahora vamos a generar toda la esrtuctura de Pasajeros.
+
+* En primer lugar vamos a crear el modulo usando el CLI de Nest
+
+    ```bash
+    $ nest g mo manage/passenger
+    ```
+
+* Ahora vamos a crear el controlador
+    ```bash
+    $ nest g co manage/passenger
+    ```
+
+* Y un servicio
+    ```bash
+    $ nest g s manage/passenger
+    ```
+
+En este momento, se debe haber importado tanto el controlador como el servicio dentro del modulo de pasajeros. Verifiquemos que el modulo de pasajeros "**_src/manage/passenger/passenger.module.ts_**" se encuentre estructurado de la siguiente manera:
+
+```javascript
+import { Module } from '@nestjs/common';
+import { PassengerController } from './passenger.controller';
+import { PassengerService } from './passenger.service';
+
+@Module({
+  controllers: [PassengerController],
+  providers: [PassengerService]
+})
+export class PassengerModule {}
+```
+
+Creamos el DTO para pasajeros, para esto vamos a crear el directorio **"dto"** dentro de **_"src/manage/passenger"_**.
+Dentro de **"src/manage/passenger/dto"** vamor a crear el archivo **_"passenger.dto.ts"_** con el siguiente código:
+
+##### passenger.dto.ts
+```javascript
+import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+
+export class PassengerDTO{
+    @IsNotEmpty()
+    @IsString()
+    readonly name: string;
+
+    @IsNotEmpty()
+    @IsEmail()
+    readonly email: string;
+}
+```
+
+Creamos la interface de pasajero **_"passenger.interface.ts"_** dentro de **"src/commons/interfaces/manage/"** con el siguiente código:
+
+##### passenger.interface.ts
+```javascript
+export interface IPassenger extends Document{
+    name: string;
+    email: string;
+}
+```
+
+### Creando esquema y modelo de passenger
+
+Lo primero que vamos a hacer es crear el directorio **_"schema"_** dentro de **"src/manage/passenger"**.
+
+Dentro de **"src/manage/passenger/schema"** vamos a crear el archivo **_"passenger.schema.ts"_**
+
+El código del archivo **passenger.schema.ts** es el siguiente:
+
+##### passenger.schema.ts
+```javascript
+import * as mongoose from 'mongoose';
+
+export const PassengerSchema = new mongoose.Schema({
+    name:{
+        type: String,
+        required: true
+    },
+    email:{
+        type: String,
+        required: true
+    }
+}, {
+    timestamps: true
+});
+
+PassengerSchema.index({email: 1}, {unique: true});
+```
+
+Vamos ahora a agregar dentro de **"src/commons/models/models.ts"** el siguiente código.
+
+##### models.ts
+```javascript
+export const PASSENGER = {name: 'passengers'};
+```
+
+Luego, esta constante **_"PASSENGER"_**, junto con **_"passenger.schema.ts"_** la vamos a importar en el modulo **"src/manage/passenger/passenger.module.ts"** de la siguiente manera:
+
+##### passenger.module.ts
+```javascript
+import { MongooseModule } from '@nestjs/mongoose';
+import { PASSENGER } from 'src/commons/models/models';
+import { UserSchema } from './schema/user.schema';
+
+imports: [
+    MongooseModule.forFeatureAsync([
+      {
+        name: PASSENGER.name,
+        useFactory: () => PassengerSchema
+      }
+    ])
+  ],
 ```
