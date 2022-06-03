@@ -812,6 +812,7 @@ export interface IFlight extends Document{
     destinationCity: string;
     flightDate: Date;
     passengers: IPassenger[];
+}
 ```
 
 ### Creando esquema y modelo de vuelos
@@ -1060,5 +1061,89 @@ async delete(id: string): Promise<Object>{
         status: HttpStatus.OK,
         message: 'Flight deleted'
     };
+}
+```
+
+
+### Agregar pasajeros al vuelo
+
+Vamos a agregar en el controlador **_"src/manage/flight/flight.controller.ts"_** el siguiente codigo:
+
+##### flight.controller.ts
+```javascript
+// Importamos todo lo necesario para realizar estas acciones
+import { Controller, Body, Post, Get, Param, Put, Delete, HttpStatus, HttpException } from '@nestjs/common';
+import { PassengerService } from '../passenger/passenger.service';
+
+// Inyectamos el servicio de passengers al constructor de esta manera
+
+constructor(
+    private readonly _flightService: FlightService,
+    private readonly _passengerService: PassengerService
+){}
+
+@Post('flight/:flightId/passenger/:passengerId')
+async addPassenger(@Param('flightId') flightId: string, @Param('passengerId') passengerId: string)
+{
+    const passenger = await this._passengerService.getPassenger(passengerId);
+    if( ! passenger){
+        throw new HttpException('Passenger not found', HttpStatus.NOT_FOUND);
+    }
+    return this._flightService.addPassenger(flightId, passengerId);
+}
+```
+
+Para poder utilizar el servicio de passenger en el controlador de vuelos, debemos exportar el servicio de passenger.
+
+Para eso, vamos a exportar el servicio de passenger en el archivo **_"src/manage/passenger/passenger.module.ts"_**
+
+* Bajo el arreglo _"providers"_ agregamos lo siguiente
+##### passenger.module.ts
+```javascript
+exports: [PassengerService]
+```
+
+Ahora vamos a agregar el metodo **_addPassenger_** al servicio de vuelos **_"src/manage/flight/flight.service.ts"_**
+
+##### flight.service.ts
+```javascript
+async addPassenger(flightId: string, passengerId: string): Promise<IFlight>
+{
+    return await this._model.findByIdAndUpdate(
+            flightId, 
+            { 
+                $addToSet: { passengers:passengerId } 
+            }, 
+            { new: true }
+    ).populate('passengers');
+}
+```
+
+
+### Actualizacion de Metodos de vuelos para obtener pasajeros
+
+Vamos a actualizar la logica para que cuando se consulte la lista de vuelos y un vuelo por ID, el sistema retorne no solo el ID de
+cada pasajero, sino todo el objeto de pasajero.
+
+Para eso, en el servicio de vuelos **_"src/manage/flight/flight.service.ts"_** hacemos los siguientes cambios:
+
+##### flight.service.ts
+```javascript
+// Método que lista los vuelos
+async getAll(): Promise<IFlight[]>
+{
+    return await this._model.find().populate('passengers');
+}
+
+// Metodo que trae un vuelo por su ID
+async getFlight(id: string): Promise<IFlight>
+{
+    return await this._model.findById(id).populate('passengers');
+}
+
+// Metodo que actualiza un vuelo
+async update(id: string, flightDTO: FlightDTO): Promise<IFlight>
+{
+    return await this._model.findByIdAndUpdate(id, flightDTO, {new: true}).populate('passengers');
 }
 ```

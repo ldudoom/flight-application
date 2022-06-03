@@ -11,12 +11,12 @@ export class FlightService {
 
     async getAll(): Promise<IFlight[]>
     {
-        return await this._model.find();
+        return await this._model.find().populate('passengers');
     }
 
     async getFlight(id: string): Promise<IFlight>
     {
-        return await this._model.findById(id);
+        return await this._model.findById(id).populate('passengers');
     }
 
     async store(flightDTO: FlightDTO): Promise<IFlight>
@@ -26,7 +26,7 @@ export class FlightService {
 
     async update(id: string, flightDTO: FlightDTO): Promise<IFlight>
     {
-        return await this._model.findByIdAndUpdate(id, flightDTO, {new: true});
+        return await this._model.findByIdAndUpdate(id, flightDTO, {new: true}).populate('passengers');
     }
 
     async delete(id: string): Promise<Object>
@@ -36,5 +36,16 @@ export class FlightService {
             status: HttpStatus.OK,
             message: 'Flight deleted'
         };
+    }
+
+    async addPassenger(flightId: string, passengerId: string): Promise<IFlight>
+    {
+        return await this._model.findByIdAndUpdate(
+                flightId, 
+                { 
+                    $addToSet: { passengers:passengerId } 
+                }, 
+                { new: true }
+        ).populate('passengers');
     }
 }
