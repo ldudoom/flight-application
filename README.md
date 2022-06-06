@@ -1147,3 +1147,13 @@ async update(id: string, flightDTO: FlightDTO): Promise<IFlight>
     return await this._model.findByIdAndUpdate(id, flightDTO, {new: true}).populate('passengers');
 }
 ```
+
+### Consumiendo APIs
+
+Primero vamos a instalar las siguientes dependencias:
+
+```bash
+$ npm i axios moment
+```
+
+
