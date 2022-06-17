@@ -1147,3 +1147,52 @@ async update(id: string, flightDTO: FlightDTO): Promise<IFlight>
     return await this._model.findByIdAndUpdate(id, flightDTO, {new: true}).populate('passengers');
 }
 ```
+
+## Documentación con OpenAPI (Swagger)
+
+### ¿Qué es Swagger?
+
+En nuestro proyecto nos vamos a apoyar de Swagger, específicamente de la **UI de Swagger**.
+
+#### UI de Swagger
+> Nos permite visualizar e interactuar con los recursos de la API sin tener ninguna lógica de implementación en su lugar. Se genera automáticamente a partir de su especificación **OpenAPI** (anteriormente conocida como Swagger), que facilita la implementación del backend y el consumo del lado del cliente.
+
+### Instalación de Swagger
+- Abrimos una nueva terminal y ejecutamos:
+
+```bash
+$ npm install --save @nestjs/swagger swagger-ui-express
+```
+
+### Configuración de Swagger Module
+
+Vamos a abrir el archivo /main.ts, y vamos a agregar justo antes de la linea
+```javascript
+await app.listen(3000);
+```
+
+el siguiente codigo:
+
+##### main.ts
+```javascript
+// Generamos las opciones con las cuales se va a configurar el SwaggerModulo
+const options = new DocumentBuilder()
+                          .setTitle('Flight App API')
+                          .setDescription('Scheduled Flights App')
+                          .setVersion('1.0.0')
+                          .build();
+
+// Creamos el document de SwaggerModule
+const document = SwaggerModule.createDocument(app, options);  
+
+// Por ultimo le damos la ruta en la cual se va a ver nuestro OpenAPI
+SwaggerModule.setup('/api/docs', app, document);
+```
+
+Para esto, recordemos importar las dependencias en el archivo src/main.ts
+
+##### main.ts
+```javascript
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+```
+
