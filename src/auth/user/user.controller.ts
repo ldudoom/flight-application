@@ -1,7 +1,9 @@
 import { Body, Controller, Post, Get, Param, Put, Delete } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { UserDTO } from './dto/user.dto';
 import { UserService } from './user.service';
 
+@ApiTags('Users Resource')
 @Controller('api/v1/user')
 export class UserController {
 

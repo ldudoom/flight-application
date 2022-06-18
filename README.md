@@ -1197,3 +1197,37 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 ```
 
 
+### Etiquetas
+
+Ahora vamos a agregar unas etiquetas a los controladores para poder identificar las rutas segun el controlador.
+
+Ya que por ahora, todos los endpoints en **Swagger** se muestran como una sola lista, y no sabemos a que controlador pertenece cada uno de ellos, para esto vamos a agregar estas etiquetas usando un decorador de **Swagger** de la siguiente manera:
+
+paras eso vamos a abrir los controladores:
+
+##### src/auth/user/user.controller.ts
+```javascript
+// Primero importamos la dependencia ApiTags
+import { ApiTags } from '@nestjs/swagger';
+
+// Luego colocamos este decorador sobre el decorador @Controller
+@ApiTags('Users Resource')
+```
+
+##### src/manage/flight/flight.controller.ts
+```javascript
+// Primero importamos la dependencia ApiTags
+import { ApiTags } from '@nestjs/swagger';
+
+// Luego colocamos este decorador sobre el decorador @Controller
+@ApiTags('Flights Resource')
+```
+
+##### src/manage/passenger/passenger.controller.ts
+```javascript
+// Primero importamos la dependencia ApiTags
+import { ApiTags } from '@nestjs/swagger';
+
+// Luego colocamos este decorador sobre el decorador @Controller
+@ApiTags('Passengers Resource')
+```
