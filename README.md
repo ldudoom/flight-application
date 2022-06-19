@@ -1231,3 +1231,102 @@ import { ApiTags } from '@nestjs/swagger';
 // Luego colocamos este decorador sobre el decorador @Controller
 @ApiTags('Passengers Resource')
 ```
+
+### Decoradores
+
+Vamos a colocar los decoradores a las clases DTO para poder conocer en la documentacion de **Swagger** lo que necesitamos enviar.
+si vemos actualmente la pagina de **Swagger UI** vamos a ver que no existen ejemplos del _Request_.
+
+Para eso, vamos a abrir las clases DTO y agregar lo siguiente:
+
+En primer lugar importamos la siguiente dependencia en las 3 clases
+
+```javascript
+import { ApiProperty } from "@nestjs/swagger";
+```
+
+Ahora vamos a colocar el decorador @ApiProperty() en cada propiedad de los DTO, de la siguiente manera:
+##### src/auth/user/dto/user.dto.ts 
+```javascript
+@ApiProperty()
+@IsNotEmpty()
+@IsString()
+readonly name: string;
+
+@ApiProperty()
+@IsNotEmpty()
+@IsString()
+readonly username: string;
+
+@ApiProperty()
+@IsNotEmpty()
+@IsEmail()
+readonly email: string;
+
+@ApiProperty()
+@IsNotEmpty()
+@IsString()
+readonly password: string;
+```
+
+
+##### src/manage/flight/dto/flight.dto.ts
+```javascript
+@ApiProperty()
+@IsNotEmpty()
+@IsString()
+readonly pilot: string;
+
+@ApiProperty()
+@IsNotEmpty()
+@IsString()
+readonly airplane: string;
+
+@ApiProperty()
+@IsNotEmpty()
+@IsString()
+readonly destinationCity: string;
+
+@ApiProperty()
+@IsNotEmpty()
+@IsDateString()
+readonly flightDate: Date;
+```
+
+
+##### src/manage/passenger/dto/passenger.dto.ts
+```javascript
+@ApiProperty()
+@IsNotEmpty()
+@IsString()
+readonly name: string;
+
+@ApiProperty()
+@IsNotEmpty()
+@IsEmail()
+readonly email: string;
+```
+
+Si queremos documentar un poco más cada uno de los métodos de los controladores, pordemos colocar el siguiente decorador:
+
+Por ejemplo en ***user.controller.ts***
+
+Primero importamos la dependencia en el controlador ***"ApiOperation"***
+##### src/auth/user/user.controller.ts
+```javascript
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+```
+
+Luego ya podemos utilizar el decorador en cada método de esta manera
+
+##### src/auth/user/user.controller.ts
+```javascript
+@Post()
+@ApiOperation({
+    summary: 'Creating new users'
+})
+store(@Body() userDTO: UserDTO){
+...
+```
+
+### Barra de Búsqueda

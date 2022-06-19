@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Get, Param, Put, Delete } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserDTO } from './dto/user.dto';
 import { UserService } from './user.service';
 
@@ -15,6 +15,9 @@ export class UserController {
     }
 
     @Post()
+    @ApiOperation({
+        summary: 'Creating new users'
+    })
     store(@Body() userDTO: UserDTO){
         return this._userService.store(userDTO);
     }
