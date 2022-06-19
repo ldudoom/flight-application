@@ -1164,6 +1164,33 @@ En nuestro proyecto nos vamos a apoyar de Swagger, específicamente de la **UI d
 $ npm install --save @nestjs/swagger swagger-ui-express
 ```
 
+> **Nota:** Verificar que las versiones de las dependencias sea compatibles, para este proyecto, las dependencias deberian ser:
+
+
+```json
+"dependencies": 
+{
+    "@nestjs/common": "^8.0.0",
+    "@nestjs/config": "^2.0.1",
+    "@nestjs/core": "^8.0.0",
+    "@nestjs/platform-express": "^8.0.0",
+    ...
+}
+```
+
+ > Dependencias de Desarrollo:
+ 
+```bash
+"devDependencies": {
+{
+    "@nestjs/cli": "^8.0.0",
+    "@nestjs/schematics": "^8.0.0",
+    "@nestjs/testing": "^8.0.0",
+    ...
+}
+```
+
+
 ### Configuración de Swagger Module
 
 Vamos a abrir el archivo /main.ts, y vamos a agregar justo antes de la linea
@@ -1330,3 +1357,38 @@ store(@Body() userDTO: UserDTO){
 ```
 
 ### Barra de Búsqueda
+
+
+Ahora vamos a ver como enviarle parametros a la configuración de **Swagger** desde su modulo.
+En este ejemplo lo vamos a hacer implementando una barra de búsqueda en la lista de APIs.
+Para eso abrimos el archivo **src/main.ts** y configuramos el _swaghger:
+
+##### src/main.ts
+```javascript
+SwaggerModule.setup('/api/docs', app, document, {
+    swaggerOptions: {
+      filter: true
+    }
+  });
+```
+
+
+## Protección de Rutas: JWT - Guards - Strategies
+
+### Instalación de dependencias
+
+Lo primero que vamos a hacer es instalar las de **JSON Web Tokens _(JWT)_** y **Passport**
+
+para eso vamos a la consola y ejecutamos las instalaciones en el proyecto:
+
+Primero instalamos las dependencias de jwt y passport-jwt
+```bash
+$ npm i @nestjs/jwt passport-jwt
+```
+
+Ahora instalamos los modulos de passport
+```bash
+$ npm i @nestjs/passport passport passport-local
+```
+
+

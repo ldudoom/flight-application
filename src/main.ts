@@ -17,7 +17,11 @@ async function bootstrap() {
                           .setVersion('1.0.0')
                           .build();
   const document = SwaggerModule.createDocument(app, options);  
-  SwaggerModule.setup('/api/docs', app, document);
+  SwaggerModule.setup('/api/docs', app, document, {
+    swaggerOptions: {
+      filter: true
+    }
+  });
 
   await app.listen(3000);
 }
