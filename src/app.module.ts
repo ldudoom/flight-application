@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { UserModule } from './auth/user/user.module';
 import { PassengerModule } from './manage/passenger/passenger.module';
 import { FlightModule } from './manage/flight/flight.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { FlightModule } from './manage/flight/flight.module';
       isGlobal: true 
     }), 
     MongooseModule.forRoot(process.env.URI_MONGODB), 
-    UserModule, PassengerModule, FlightModule
+    UserModule, PassengerModule, FlightModule, AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

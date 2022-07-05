@@ -1391,4 +1391,21 @@ Ahora instalamos los modulos de passport
 $ npm i @nestjs/passport passport passport-local
 ```
 
+### Estructura del módulo
+ Ahora vamos a hacer la configuración de nuestro módulo, es decir vamos a generar el controlador, servicio etc.
 
+* En primer lugar vamos a crear el modulo usando el CLI de Nest
+
+    ```bash
+    $ npx nest g mo auth
+    ```
+
+* Ahora vamos a crear el controlador
+    ```bash
+    $ npx nest g co auth
+    ```
+
+* Y un servicio
+    ```bash
+    $ npx nest g s auth
+    ```
