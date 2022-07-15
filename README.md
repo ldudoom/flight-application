@@ -1430,3 +1430,26 @@ Ahora vamos a abrir nuestro archivo **src/main.ts** para que pueda ejecutarse en
 ...
 await app.listen(process.env.port || 3000);
 ```
+
+### Guards
+Vamos a crear nuestras clases Guard. Para eso en primer lugar vamos a crear un directorio dentro de ***/src/auth*** que se llame ***guards***. Y dentro de éste directorio vamos a crear el archivo ***jwt-auth.guard.ts***
+
+##### src/auth/guards/jwt-auth.guard.ts
+```javascript
+import { Injectable } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt'){}
+```
+
+Ahora vamos a crear otro archivo en ***src/auth/guards/*** con el nombre ***local-auth.guard.ts***
+
+##### src/auth/guards/local-auth.guard.ts
+```javascript
+import { Injectable } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+
+@Injectable()
+export class LocalAuthGuard extends AuthGuard('local'){}
+```
