@@ -1377,7 +1377,7 @@ SwaggerModule.setup('/api/docs', app, document, {
 
 ### Instalación de dependencias
 
-Lo primero que vamos a hacer es instalar las de **JSON Web Tokens _(JWT)_** y **Passport**
+Lo primero que vamos a hacer es instalar las dependencias de **JSON Web Tokens _(JWT)_** y **Passport**
 
 para eso vamos a la consola y ejecutamos las instalaciones en el proyecto:
 
@@ -1409,3 +1409,12 @@ $ npm i @nestjs/passport passport passport-local
     ```bash
     $ npx nest g s auth
     ```
+
+### Variables de entorno
+Abrimos el archivo que contiene nuestras variables de entorno **.env.development** y vamos a crear las siguientes variables de entorno
+
+```
+#JWT
+JWT_SECRET=[clave_secreta_paga_generar_tokens]
+JWT_EXPIRES_IN=[tiempo_que_durara_el_token_ej_12h]
+```
