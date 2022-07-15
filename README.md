@@ -1417,4 +1417,16 @@ Abrimos el archivo que contiene nuestras variables de entorno **.env.development
 #JWT
 JWT_SECRET=[clave_secreta_paga_generar_tokens]
 JWT_EXPIRES_IN=[tiempo_que_durara_el_token_ej_12h]
+
+#API
+APP_URL=https://superflights.com
+PORT=3000
+```
+
+Ahora vamos a abrir nuestro archivo **src/main.ts** para que pueda ejecutarse en el puerto 3000, pero si existe una variable de entorno que pide que la ejecución se haga en otro puerto, entonces lo haga de esa manera.
+
+##### src/main.ts
+```javascript
+...
+await app.listen(process.env.port || 3000);
 ```
