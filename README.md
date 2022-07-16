@@ -1453,3 +1453,81 @@ import { AuthGuard } from "@nestjs/passport";
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local'){}
 ```
+
+
+### Strategies
+Ahora vamos a hacer la configuracion de Strategies Passport, para eso vamos a crear un nuevo directorio con el nombre ***strategies*** dentro de ***/src/auth***
+
+Y dentro del directorio ***src/auth/strategies*** vamos a crear el archivo ***jwt.strategy.ts***
+
+Nuestra clase Strategy de JWT Passport va a tener el siguiente codigo:
+
+##### src/auth/strategies/jwt.strategy.ts
+```javascript
+import { Injectable } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { ExtractJwt, Strategy } from 'passport-jwt'
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy)
+{
+    constructor()
+    {
+        super({
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ignoreExpiration: false,
+            secretOrKey: process.env.JWT_SECRET
+        });
+    }
+
+    async validate(payload:any)
+    {
+        return {
+            userId: payload.sub,
+            username: payload.username
+        }
+    }
+}
+```
+
+Ahora vamos a crear la clase Strategy loca, para eso creamos un archivo llamado ***local.strategy.ts*** dentro del directorio ***/src/auth/strategies/***.
+
+Y colocamos en este archivo el siguiente codigo:
+
+##### src/auth/strategies/local.strategy.ts
+```javascript
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { Strategy } from 'passport-local';
+import { AuthService } from "../auth.service";
+
+ @Injectable()
+ export class LocalStrategy extends PassportStrategy(Strategy)
+ {
+    constructor(private readonly authService: AuthService) 
+    {
+        super()
+    }
+
+    async validate(username:string, password:string): Promise<any>
+    {
+        const user = await this.authService.validateUser(username, password);
+
+        if( ! user) throw new UnauthorizedException();
+
+        return user;
+    }
+ }
+```
+
+Ahora vamos a ir a nuestro servicio ***/src/auth/auth.service.ts*** y agregamos de momento el siguente codigo dentro de la clase:
+
+##### src/auth/auth.service.ts
+```javascript
+async validateUser(username:string, password:string): Promise<any>
+{
+    return null;
+}
+```
+
+
