@@ -1531,3 +1531,12 @@ async validateUser(username:string, password:string): Promise<any>
 ```
 
 
+### Servicio Auth
+Ahora vamos a trabajar en la clase ***/src/auth/auth.service.ts*** para poder hacer login y registrar usuarios.
+
+Vamos a utilizar el servicio de usuarios para poder trabajar con los usuarios.
+
+##### src/auth/auth.service.ts
+```javascript
+
+```
