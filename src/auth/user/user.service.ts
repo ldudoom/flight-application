@@ -12,6 +12,15 @@ export class UserService {
 
     constructor(@InjectModel(USER.name) private readonly _model: Model<IUser>){}
 
+    async findByUsername(username: string): Promise<IUser>{
+        return await this._model.findOne({ username });
+    }
+
+    async checkPassword(password: string, passwordDB: string): Promise<boolean>
+    {
+        return await bcrypt.compare(password, passwordDB);
+    }
+
     async hashPassword(password: string): Promise<string>{
         const salt = await bcrypt.genSalt(10);
         return await bcrypt.hash(password, salt);

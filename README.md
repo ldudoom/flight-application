@@ -1538,5 +1538,129 @@ Vamos a utilizar el servicio de usuarios para poder trabajar con los usuarios.
 
 ##### src/auth/auth.service.ts
 ```javascript
+import { UserService } from './user/user.service';
 
+// Inyectamos el servicio de Usuarios
+constructor(private readonly userService: UserService){}
+
+// Dentro del metodo validateUser colocamos el siguiente codigo
+const user = await this.userService.findByUsername(username);
+return null;
+```
+
+Ahora, para que esto funcione, vamos a importar el modulo de usuario en ***/src/auth/auth.module.ts***
+
+##### src/auth/auth.module.ts
+```javascript
+import { Module } from '@nestjs/common';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { UserModule } from './user/user.module';
+
+@Module({
+  // Importamos el modulo de usuarios
+  imports: [UserModule],
+  controllers: [AuthController],
+  providers: [AuthService]
+})
+export class AuthModule {}
+```
+
+Ahora exportamos el servicio de Usuarios en ***/src/auth/user/user.module.ts***
+
+##### src/auth/user/user.module.ts
+```javascript
+import { UserService } from './user.service';
+
+@Module({
+  imports: [
+    MongooseModule.forFeatureAsync([
+      {
+        name:USER.name,
+        useFactory:() => UserSchema
+      }
+    ])
+  ],
+  controllers: [UserController],
+  providers: [UserService],
+  // Exportamos el servicio de usuarios
+  exports: [UserService]
+})
+```
+
+Ahora vamos a ***/src/auth/user/user.service.ts*** y vamos a crear el método **findByUsername()** que estamos usando en **validateUser()** del servicio Auth
+
+
+##### src/auth/user/user.service.ts
+```javascript
+async findByUsername(username: string): Promise<IUser>{
+    return await this._model.findOne({ username });
+}
+```
+
+Ahora vamos a valdiar si la clave que esta llegando coincide con la clave del usuario, para eso vamos a modificar el metodo **validateUser()** de ***/src/auth/auth.service.ts***
+
+##### src/auth/auth.service.ts
+```javascript
+async validateUser(username:string, password:string): Promise<any>
+{
+    const user = await this._userService.findByUsername(username);
+
+    const isValidPassword = await this._userService.checkPassword(password, user.password);
+    return null;
+}
+```
+
+Vamos a ***/src/auth/user/user.service.ts*** y vamos a crear el método **checkPassword()** que estamos usando en **validateUser()** del servicio Auth
+
+##### src/auth/user/user.service.ts
+```javascript
+async checkPassword(password: string, passwordDB: string): Promise<boolean>
+{
+    return await bcrypt.compare(password, passwordDB);
+}
+```
+
+Este momento ya sabemos si el usuario y la contraseña son válidos, y vamos a completar el método **validateUser()** de la siguiente manera:
+
+##### src/auth/auth.service.ts
+```javascript
+async validateUser(username:string, password:string): Promise<any>
+{
+    const user = await this._userService.findByUsername(username);
+    const isValidPassword = await this._userService.checkPassword(password, user.password);
+    if(user && isValidPassword) return user;
+    return null;
+}
+```
+
+Vamos a crear un nuevo método para login de usuarios y tendrá el nombre de **signIn()**
+
+##### src/auth/auth.service.ts
+```javascript
+import { JwtService } from '@nestjs/jwt';
+
+constructor(private readonly _userService: UserService, private readonly _jwtService: JwtService){}
+
+async signIn(user:any)
+{
+    const payload = {
+        username: user.username,
+        sub: user._id
+    };
+    return  {access_token: this._jwtService.sign(payload)};
+}
+
+```
+
+Lo siguiente es crear el método para poder registrar usuarios, lo vamos a crear con el nombre **signUp()** a continuación del método **signIn()**
+
+##### src/auth/auth.service.ts
+```javascript
+import { UserDTO } from './user/dto/user.dto';
+
+async signUp(userDTO: UserDTO)
+{
+    return this._userService.store(userDTO);
+}
 ```
