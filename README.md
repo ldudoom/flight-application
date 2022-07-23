@@ -1735,3 +1735,60 @@ export class AuthController {
     }
 }
 ```
+
+**CORRECCIONES**
+Tuve que hacer unas correcciones por las versiones de los paquetes:
+
+En el servicio de vuelos, el metodo **addPassenger()** debe quedar de la siguiente manera:
+
+```javascript
+async addPassenger(flightId: string, passengerId: string): Promise<IFlight>
+{
+    return await this._model.findByIdAndUpdate(
+            flightId, 
+            { 
+                // reemplazo el $addToSet
+                //$addToSet: { passengers: passengerId } 
+                
+                // por $set
+                $set: { passengers: passengerId } 
+            }, 
+            { new: true }
+    ).populate('passengers');
+}
+```
+
+Ademas, tuve que declarar otra vez el configModule en el auth module para que las variables de entorno esten accesibles:
+
+```javascript
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
+import { UserModule } from './user/user.module';
+
+@Module({
+  imports: [
+    UserModule, 
+    PassportModule, 
+    ConfigModule.forRoot({
+      envFilePath: ['.env.development'],
+      isGlobal: true 
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+        audience: process.env.APP_URL,
+      }
+    })
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, LocalStrategy, JwtStrategy]
+})
+export class AuthModule {}
+```
