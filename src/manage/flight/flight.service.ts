@@ -43,7 +43,8 @@ export class FlightService {
         return await this._model.findByIdAndUpdate(
                 flightId, 
                 { 
-                    $addToSet: { passengers:passengerId } 
+                    //$addToSet: { passengers: passengerId } 
+                    $set: { passengers: passengerId } 
                 }, 
                 { new: true }
         ).populate('passengers');
