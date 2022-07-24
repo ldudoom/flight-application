@@ -1736,7 +1736,7 @@ export class AuthController {
 }
 ```
 
-**CORRECCIONES**
+### CORRECCIONES
 Tuve que hacer unas correcciones por las versiones de los paquetes:
 
 En el servicio de vuelos, el metodo **addPassenger()** debe quedar de la siguiente manera:
@@ -1792,3 +1792,69 @@ import { UserModule } from './user/user.module';
 })
 export class AuthModule {}
 ```
+
+### Proteccion de rutas y Documentacion en Swagger
+
+Vamos a realizar la configuracion para proteger las rutas de nuestros controladores usando el token JWT y completar la documentacion para Swagger
+
+##### /src/manage/flight/flight.controller.ts
+```javascript
+// Importamos ApiBearerAuth, UseGuards y JwtAuthGuard para usar
+import { Controller, Body, Post, Get, Param, Put, Delete, HttpStatus, HttpException, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+
+// Agregamos estos decoradores al controlador de vuelos
+@ApiTags('Flights Resource')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('api/v1/flight')
+export class FlightController {
+    ...
+```
+
+
+##### /src/manage/passenger/passenger.controller.ts
+```javascript
+import { Controller, Body, Post, Get, Param, Put, Delete, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+
+@ApiTags('Passengers Resource')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('api/v1/passenger')
+export class PassengerController {
+    ...
+```
+
+##### /src/auth/user/user.controller.ts
+```javascript
+import { Body, Controller, Post, Get, Param, Put, Delete, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+
+@ApiTags('Users Resource')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('api/v1/user')
+export class UserController {
+    ...
+```
+
+Para completar la documentacion de Swagger con el token, lo que hacemos es colocar el siguiente codigo en el ***/src/main.ts***
+
+##### src/main.ts
+```javascript
+/* 
+    En las opciones, antes de .build(), agregamos la linea:
+    .addBearerAuth()
+*/
+const options = new DocumentBuilder()
+                          .setTitle('Flight App API')
+                          .setDescription('Scheduled Flights App')
+                          .setVersion('1.0.0')
+                          .addBearerAuth()
+                          .build();
+```
+
