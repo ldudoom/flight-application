@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
@@ -11,6 +12,10 @@ import { UserModule } from './user/user.module';
   imports: [
     UserModule, 
     PassportModule, 
+    ConfigModule.forRoot({
+      envFilePath: ['.env.development'],
+      isGlobal: true 
+    }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: {

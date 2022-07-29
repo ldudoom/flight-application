@@ -1,5 +1,10 @@
 # Aplicacion de Vuelos NestJS
 ###### Notas del proyecto
+## Levantar contenedor docker con MongoDB
+    ```bash
+    $ docker run -d --name mongodb -p 27017:27017 --mount src=mongodbdata,dst=/data/db mongo:latest
+    ```
+
 ## Instalacion del framework
 * En primer lugar, instalamos el CLI de NestJS en caso de no tenerlo instalado
     ```bash
@@ -1698,5 +1703,158 @@ import { UserModule } from './user/user.module';
 export class AuthModule {}
 ```
 
+### Auth Controller 
 
-### Controlador Auth
+Vamos a configurar las rutas del auth Controller para poder registrar usuarios y hacer login y generar un token para poder usarlo en las otras rutas. Para esto, vamos a escribir el siguiente codigo en ***/src/auth/auth.controller.ts***
+
+##### src/auth/auth.controller.ts
+```javascript
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { AuthService } from './auth.service';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { UserDTO } from './user/dto/user.dto';
+
+@ApiTags('Authentication')
+@Controller('api/v1/auth')
+export class AuthController {
+
+    constructor(private readonly _authService: AuthService){}
+
+    @UseGuards(LocalAuthGuard)
+    @Post('signin')
+    async signIn(@Req() req)
+    {
+        return await this._authService.signIn(req.user);
+    }
+
+    @Post('signup')
+    async signUp(@Body() userDTO: UserDTO)
+    {
+        return await this._authService.signUp(userDTO);
+    }
+}
+```
+
+### CORRECCIONES
+Tuve que hacer unas correcciones por las versiones de los paquetes:
+
+En el servicio de vuelos, el metodo **addPassenger()** debe quedar de la siguiente manera:
+
+```javascript
+async addPassenger(flightId: string, passengerId: string): Promise<IFlight>
+{
+    return await this._model.findByIdAndUpdate(
+            flightId, 
+            { 
+                // reemplazo el $addToSet
+                //$addToSet: { passengers: passengerId } 
+                
+                // por $set
+                $set: { passengers: passengerId } 
+            }, 
+            { new: true }
+    ).populate('passengers');
+}
+```
+
+Ademas, tuve que declarar otra vez el configModule en el auth module para que las variables de entorno esten accesibles:
+
+```javascript
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
+import { UserModule } from './user/user.module';
+
+@Module({
+  imports: [
+    UserModule, 
+    PassportModule, 
+    ConfigModule.forRoot({
+      envFilePath: ['.env.development'],
+      isGlobal: true 
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+        audience: process.env.APP_URL,
+      }
+    })
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, LocalStrategy, JwtStrategy]
+})
+export class AuthModule {}
+```
+
+### Proteccion de rutas y Documentacion en Swagger
+
+Vamos a realizar la configuracion para proteger las rutas de nuestros controladores usando el token JWT y completar la documentacion para Swagger
+
+##### /src/manage/flight/flight.controller.ts
+```javascript
+// Importamos ApiBearerAuth, UseGuards y JwtAuthGuard para usar
+import { Controller, Body, Post, Get, Param, Put, Delete, HttpStatus, HttpException, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+
+// Agregamos estos decoradores al controlador de vuelos
+@ApiTags('Flights Resource')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('api/v1/flight')
+export class FlightController {
+    ...
+```
+
+
+##### /src/manage/passenger/passenger.controller.ts
+```javascript
+import { Controller, Body, Post, Get, Param, Put, Delete, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+
+@ApiTags('Passengers Resource')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('api/v1/passenger')
+export class PassengerController {
+    ...
+```
+
+##### /src/auth/user/user.controller.ts
+```javascript
+import { Body, Controller, Post, Get, Param, Put, Delete, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+
+@ApiTags('Users Resource')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('api/v1/user')
+export class UserController {
+    ...
+```
+
+Para completar la documentacion de Swagger con el token, lo que hacemos es colocar el siguiente codigo en el ***/src/main.ts***
+
+##### src/main.ts
+```javascript
+/* 
+    En las opciones, antes de .build(), agregamos la linea:
+    .addBearerAuth()
+*/
+const options = new DocumentBuilder()
+                          .setTitle('Flight App API')
+                          .setDescription('Scheduled Flights App')
+                          .setVersion('1.0.0')
+                          .addBearerAuth()
+                          .build();
+```
+
