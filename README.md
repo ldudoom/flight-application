@@ -1,10 +1,10 @@
 # Aplicacion de Vuelos NestJS
 ###### Notas del proyecto
 ## Levantar contenedor docker con MongoDB
-
-    ```bash
-    $ docker run -d --name mongodb -p 27017:27017 --mount src=mongodbdata,dst=/data/db mongo:latest
-    ```
+Vamos a levantar un contenedor con MongoDB para esta práctica
+```sh
+$ docker run -d --name mongodb -p 27017:27017 --mount src=mongodbdata,dst=/data/db mongo:latest
+```
 
 ## Instalacion del framework
 * En primer lugar, instalamos el CLI de NestJS en caso de no tenerlo instalado
